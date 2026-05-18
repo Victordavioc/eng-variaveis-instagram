@@ -1,0 +1,25 @@
+# Secrets — NUNCA commitar (contém chaves Hiker e Gemini)
+.env
+.env.local
+*.key
+
+# Dados são commitados neste repo (decisão consciente do projeto) para evitar
+# re-coletar via Hiker e gastar créditos. Logs sensíveis seguem ignorados.
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Editor / IDE / assistants
+.vscode/
+.idea/
+.claude/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
