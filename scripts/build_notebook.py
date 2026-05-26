@@ -1,6 +1,6 @@
 """Constrói notebooks/apresentacao.ipynb via nbformat.
 
-Mantém o conteúdo como lista de células (markdown/code) — fácil de auditar e regenerar.
+Mantém o conteúdo como lista de células (markdown/code), fácil de auditar e regenerar.
 """
 from __future__ import annotations
 
@@ -23,13 +23,66 @@ def code(text: str) -> dict:
 cells: list = []
 
 # ============================================================
-# SEÇÃO 0 — Introdução
+# BOOTSTRAP (Colab + local)
+# ============================================================
+cells.append(code("""# Bootstrap: detecta Colab e prepara o ambiente.
+# Idempotente: rodar várias vezes não quebra nada. No ambiente local, é no-op.
+import os, sys, subprocess
+from pathlib import Path
+
+IN_COLAB = "google.colab" in sys.modules
+
+if IN_COLAB:
+    REPO_URL = "https://github.com/Victordavioc/eng-variaveis-instagram.git"
+    REPO_DIR = Path("/content/eng-variaveis-instagram")
+    if not REPO_DIR.exists():
+        print(f"Clonando {REPO_URL} ...")
+        subprocess.run(["git", "clone", "--depth", "1", REPO_URL, str(REPO_DIR)], check=True)
+    os.chdir(REPO_DIR / "notebooks")
+    print("cwd:", Path.cwd())
+
+    print("Instalando dependências...")
+    subprocess.run(["pip", "install", "-q", "-r", "../requirements.txt"], check=True)
+
+    # chaves de API via Colab Secrets (ícone de chave na barra esquerda).
+    # Cadastre HIKER_API_KEY e GEMINI_API_KEY com 'Notebook access' marcado.
+    from google.colab import userdata
+    for key in ("GEMINI_API_KEY", "HIKER_API_KEY"):
+        try:
+            os.environ[key] = userdata.get(key)
+            print(f"[ok] {key} carregada do Colab Secrets")
+        except Exception:
+            print(f"[aviso] Secret '{key}' não cadastrada. "
+                  f"OK se for usar só o cache em disco; obrigatória para --force.")
+else:
+    print("Ambiente local: nada a fazer (cache em data/raw/).")"""))
+
+cells.append(md("""### (Opcional) Forçar nova coleta de dados
+
+Por padrão o notebook usa o cache commitado em `data/raw/` (zero chamadas de API).
+Para **ignorar o cache** e re-baixar da Hiker, descomente a célula abaixo.
+
+⚠️ **Consome créditos da Hiker API.** Requer `HIKER_API_KEY` definida.
+
+- `--force` re-baixa tudo (perfis + mídias + comentários)
+- `--force-profiles` só os perfis (útil ao adicionar usernames novos)
+- `--force-medias` só as mídias
+- `--force-comments` só os comentários
+"""))
+
+cells.append(code("""# (Opcional) descomente UMA das linhas abaixo para forçar re-coleta:
+# !python ../scripts/collect_data.py --force-profiles
+# !python ../scripts/collect_data.py --force
+print("Nada feito. Cache em data/raw/ será usado.")"""))
+
+# ============================================================
+# SEÇÃO 0: Introdução
 # ============================================================
 cells.append(md("""# Engenharia de Variáveis com Dados do Instagram
 
-**Disciplina:** Engenharia de Variáveis — UFG
+**Disciplina:** Sistemas Inteligentes de Apoio a Decisão (UFG)
 **Data da apresentação:** 02/06/2026
-**Fonte de dados:** [Hiker API](https://hikerapi.com/) — scraping autorizado de perfis públicos do Instagram
+**Fonte de dados:** [Hiker API](https://hikerapi.com/), scraping autorizado de perfis públicos do Instagram
 
 ## Por que esse projeto?
 
@@ -40,13 +93,13 @@ e métricas em escalas absurdamente diferentes (Cristiano Ronaldo tem
 playground perfeito para mostrar **todas as técnicas de engenharia
 de variáveis** que vamos cobrir:
 
-1. **Exclusão de anomalias** — filtrar contas privadas, bots, posts impossíveis
-2. **Decomposição** — quebrar `taken_at`, `caption_text` em dezenas de features
-3. **Features semânticas via LLM** — Gemini extrai tema, sentimento, entidades
-4. **Discretização** — virar `follower_count` em tier (micro/mid/macro)
-5. **Cruzamento** — `tier × theme`, `engagement_rate`
-6. **Transformações lineares** — StandardScaler para comparar perfis
-7. **Transformações não-lineares** — log para domar a cauda longa
+1. **Exclusão de anomalias**: filtrar contas privadas, bots, posts impossíveis
+2. **Decomposição**: quebrar `taken_at`, `caption_text` em dezenas de features
+3. **Features semânticas via LLM**: Gemini extrai tema, sentimento, entidades
+4. **Discretização**: virar `follower_count` em tier (micro/mid/macro)
+5. **Cruzamento**: `tier × theme`, `engagement_rate`
+6. **Transformações lineares**: StandardScaler para comparar perfis
+7. **Transformações não-lineares**: log para domar a cauda longa
 
 ## A pergunta que vamos responder
 
@@ -63,12 +116,12 @@ Especificamente, no fim do notebook a base estará preparada para responder:
 """))
 
 # ============================================================
-# SEÇÃO 1 — Coleta e carregamento
+# SEÇÃO 1: Coleta e carregamento
 # ============================================================
 cells.append(md("""## 1. Coleta e carregamento (JSON semi-estruturado)
 
 A Hiker API retorna 3 tipos de objeto: **perfil**, **mídia (post)** e **comentário**.
-Tudo cacheado em `data/raw/` — re-rodar o notebook **não consome créditos**.
+Tudo cacheado em `data/raw/`. Re-rodar o notebook **não consome créditos**.
 
 > O wrapper `src/hiker_client.py` cuida de paginação, retry com backoff e cache em disco.
 > O loader `src/data_loader.py` usa `pd.json_normalize` para achatar a estrutura aninhada em 3 DataFrames relacionais.
@@ -116,18 +169,18 @@ cells.append(code("""# preview dos perfis coletados
 profiles_df[["username", "follower_count", "following_count", "media_count", "is_verified", "is_private"]].sort_values("follower_count", ascending=False)"""))
 
 # ============================================================
-# SEÇÃO 2 — Exclusão de anomalias
+# SEÇÃO 2: Exclusão de anomalias
 # ============================================================
 cells.append(md("""## 2. Exclusão de anomalias
 
-> *"O que não dá pra confiar, vai fora — antes de qualquer comparação."*
+> *"O que não dá pra confiar, vai fora antes de qualquer comparação."*
 
 Vamos detectar:
 
 - **Contas suspeitas/inativas:** poucos seguidores, sem posts, contas privadas
 - **Nulos sistêmicos:** posts sem `caption_text` (mídias só-imagem), `like_count` ausente
 - **Duplicatas:** mesmo `media_pk` apareceu em paginação sobreposta
-- **Outliers em likes:** detectados via IQR (mas mantidos como "viral" — não removidos)
+- **Outliers em likes:** detectados via IQR (mas mantidos como "viral", não removidos)
 
 A limpeza é o que vai permitir comparar **micro × macro de forma justa** mais à frente.
 """))
@@ -168,7 +221,7 @@ print(posts_df[critical_post_cols].isna().sum())
 
 # remove posts sem timestamp ou sem likes (essenciais)
 posts_df = posts_df.dropna(subset=["taken_at", "like_count", "media_pk"]).reset_index(drop=True)
-# caption_text pode ser NaN para posts só-imagem — preenche com string vazia
+# caption_text pode ser NaN para posts só-imagem; preenche com string vazia
 posts_df["caption_text"] = posts_df["caption_text"].fillna("")
 print("\\nApós tratar nulos:", posts_df.shape)"""))
 
@@ -187,10 +240,10 @@ print(f"Valores impossíveis (likes/comments negativos): {impossible}")
 # garantir não-negatividade (defensivo)
 posts_df = posts_df[(posts_df["like_count"] >= 0) & (posts_df["comment_count"].fillna(0) >= 0)].reset_index(drop=True)"""))
 
-cells.append(code("""# 2.6 - outliers em like_count via IQR (NÃO removemos — vamos rotular como 'viral')
+cells.append(code("""# 2.6 - outliers em like_count via IQR (NÃO removemos, vamos rotular como 'viral')
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 sns.boxplot(x=posts_df["like_count"], ax=axes[0], color="#69b3a2")
-axes[0].set_title("Likes — escala original (cauda gigante)")
+axes[0].set_title("Likes (escala original, cauda gigante)")
 axes[0].set_xlabel("like_count")
 
 # IQR
@@ -201,18 +254,18 @@ n_outliers = (posts_df["like_count"] > upper).sum()
 print(f"Upper IQR fence: {upper:.0f}  | posts acima: {n_outliers} ({n_outliers/len(posts_df)*100:.1f}%)")
 
 sns.boxplot(x=np.log1p(posts_df["like_count"]), ax=axes[1], color="#e07a5f")
-axes[1].set_title("Likes — escala log1p (cauda comprimida)")
+axes[1].set_title("Likes (escala log1p, cauda comprimida)")
 axes[1].set_xlabel("log1p(like_count)")
 plt.tight_layout()
 plt.show()"""))
 
-cells.append(md("""**Decisão analítica:** posts no topo do IQR **não são removidos** — eles são exatamente os "virais"
+cells.append(md("""**Decisão analítica:** posts no topo do IQR **não são removidos**. Eles são exatamente os "virais"
 que queremos estudar. A escala log1p (à direita) mostra que, com a transformação correta,
 o que parecia outlier vira parte natural da distribuição. Isso prepara a Seção 8.
 """))
 
 # ============================================================
-# SEÇÃO 3 — Decomposição
+# SEÇÃO 3: Decomposição
 # ============================================================
 cells.append(md("""## 3. Decomposição
 
@@ -293,11 +346,11 @@ plt.tight_layout()
 plt.show()"""))
 
 # ============================================================
-# SEÇÃO 4 — Features via LLM
+# SEÇÃO 4: Features via LLM
 # ============================================================
-cells.append(md("""## 4. Features semânticas via LLM (Gemini) — com fallback determinístico
+cells.append(md("""## 4. Features semânticas via LLM (Gemini), com fallback determinístico
 
-> *"O LLM é o estado-da-arte para engenharia de features sobre texto não-estruturado —
+> *"O LLM é o estado-da-arte para engenharia de features sobre texto não-estruturado,
 > mas um pipeline de produção precisa de fallback."*
 
 Antes: regex, dicionários de palavras, sentimento via lexicon. Tudo frágil para gírias,
@@ -312,7 +365,7 @@ emojis, ironia, mistura de idiomas. Hoje, um único prompt produz features estru
 **Estratégia híbrida:** tentamos primeiro o LLM (cache em `data/processed/llm_cache.json`).
 Quando o LLM não está disponível (rate-limit, quota), aplicamos um **fallback baseado em regras**
 e marcamos o registro com `*_source` = `'llm'` ou `'fallback'`. Isso garante que o pipeline
-**nunca falha por causa do LLM** — degradação graciosa.
+**nunca falha por causa do LLM**. Degradação graciosa.
 """))
 
 cells.append(code("""# 4.1 - prepara o cliente do Gemini
@@ -388,7 +441,7 @@ for i in range(0, len(captions), BATCH):
     llm_result = classify_themes_batch(sub)
     out, src = ["outro"] * len(batch), ["empty"] * len(batch)
     if llm_result is None:
-        # LLM falhou para esse batch — aplica fallback de keywords
+        # LLM falhou para esse batch, aplica fallback de keywords
         n_fallback_batches += 1
         for k, j in enumerate(non_empty_idx):
             out[j] = theme_from_keywords(sub[k])
@@ -546,7 +599,7 @@ for _, row in example.iterrows():
     print()"""))
 
 # ============================================================
-# SEÇÃO 5 — Discretização
+# SEÇÃO 5: Discretização
 # ============================================================
 cells.append(md("""## 5. Discretização
 
@@ -596,15 +649,15 @@ de forma justa. Sem essa categorização, qualquer média geral seria dominada p
 """))
 
 # ============================================================
-# SEÇÃO 6 — Cruzamento
+# SEÇÃO 6: Cruzamento
 # ============================================================
 cells.append(md("""## 6. Cruzamento de variáveis
 
 Criar features novas a partir de combinações das existentes.
 
 - **Feature numérica:** `engagement_rate = (likes + comments) / followers`
-- **Feature numérica:** `comments_per_like` — sinal de discussão/polêmica
-- **Cruzamento categórico:** `tier × theme` — qual tier domina qual tema?
+- **Feature numérica:** `comments_per_like`, sinal de discussão/polêmica
+- **Cruzamento categórico:** `tier × theme`, qual tier domina qual tema?
 - **Cruzamento categórico:** `period_of_day × engagement_quartile`
 """))
 
@@ -626,7 +679,7 @@ cells.append(code("""# 6.2 - cruzamento tier × theme (heatmap de contagem norma
 cross_tt = pd.crosstab(posts_df["tier"], posts_df["theme"], normalize="index").round(3)
 plt.figure(figsize=(10, 4))
 sns.heatmap(cross_tt, annot=True, fmt=".2f", cmap="YlGnBu", cbar_kws={"label": "proporção"})
-plt.title("Distribuição temática por tier — quem fala de quê?")
+plt.title("Distribuição temática por tier (quem fala de quê?)")
 plt.ylabel("tier"); plt.xlabel("theme")
 plt.tight_layout(); plt.show()"""))
 
@@ -639,15 +692,15 @@ plt.title("Quartil de engajamento por período do dia")
 plt.tight_layout(); plt.show()"""))
 
 # ============================================================
-# SEÇÃO 7 — Transformações lineares
+# SEÇÃO 7: Transformações lineares
 # ============================================================
 cells.append(md("""## 7. Transformações lineares
 
 Quando colocamos `followers`, `likes`, `comments` e `engagement_rate` na mesma análise,
 suas **escalas são incomparáveis**. Padronizar é pré-requisito.
 
-- `StandardScaler` — média 0, desvio 1 (para análise estatística)
-- `MinMaxScaler`   — escala [0, 1] (para visualização, ex. radar chart)
+- `StandardScaler`: média 0, desvio 1 (para análise estatística)
+- `MinMaxScaler`: escala [0, 1] (para visualização, ex. radar chart)
 """))
 
 cells.append(code("""# 7.1 - aplica StandardScaler em features numéricas-chave
@@ -669,22 +722,22 @@ cells.append(code("""# 7.2 - antes vs depois: distribuição de like_count
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 sns.histplot(posts_df["like_count"].clip(upper=posts_df["like_count"].quantile(0.99)),
              bins=40, ax=axes[0], color="#69b3a2")
-axes[0].set_title("like_count — escala original")
+axes[0].set_title("like_count (escala original)")
 sns.histplot(posts_df["like_count_std"], bins=40, ax=axes[1], color="#e07a5f")
-axes[1].set_title("like_count — após StandardScaler")
+axes[1].set_title("like_count (após StandardScaler)")
 axes[1].set_xlabel("z-score")
 plt.tight_layout(); plt.show()"""))
 
 # ============================================================
-# SEÇÃO 8 — Transformações não-lineares
+# SEÇÃO 8: Transformações não-lineares
 # ============================================================
 cells.append(md("""## 8. Transformações não-lineares
 
 A cauda longa do Instagram é brutal: a maioria dos posts tem milhares de likes, alguns
 têm milhões. Em escala linear, qualquer gráfico é dominado pelos virais.
 
-- `np.log1p` — em `like_count`, `comment_count`, `follower_count` (cauda longa clássica)
-- `PowerTransformer (Yeo-Johnson)` — em `engagement_rate` (lida com zeros e valores positivos)
+- `np.log1p`: em `like_count`, `comment_count`, `follower_count` (cauda longa clássica)
+- `PowerTransformer (Yeo-Johnson)`: em `engagement_rate` (lida com zeros e valores positivos)
 
 O objetivo é aproximar uma distribuição **mais próxima da normal**, viabilizando comparações
 estatísticas e visualizações honestas.
@@ -697,9 +750,9 @@ profiles_df["log_followers"] = np.log1p(profiles_df["follower_count"])
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 sns.histplot(posts_df["like_count"], bins=40, ax=axes[0], color="#69b3a2")
-axes[0].set_title("like_count — original (cauda longa)")
+axes[0].set_title("like_count original (cauda longa)")
 sns.histplot(posts_df["log_likes"], bins=40, ax=axes[1], color="#e07a5f")
-axes[1].set_title("log1p(like_count) — quase log-normal")
+axes[1].set_title("log1p(like_count), quase log-normal")
 plt.tight_layout(); plt.show()"""))
 
 cells.append(code("""# 8.2 - Yeo-Johnson no engagement_rate
@@ -711,15 +764,15 @@ posts_df["engagement_rate_yj"] = yj.fit_transform(er).ravel()
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 sns.histplot(posts_df["engagement_rate"], bins=40, ax=axes[0], color="#69b3a2")
-axes[0].set_title("engagement_rate — original")
+axes[0].set_title("engagement_rate (original)")
 sns.histplot(posts_df["engagement_rate_yj"], bins=40, ax=axes[1], color="#e07a5f")
-axes[1].set_title("engagement_rate — Yeo-Johnson")
+axes[1].set_title("engagement_rate (Yeo-Johnson)")
 plt.tight_layout(); plt.show()"""))
 
 # ============================================================
-# SEÇÃO 9 — Análise final
+# SEÇÃO 9: Análise final
 # ============================================================
-cells.append(md("""## 9. Análise final — respondendo as 4 perguntas
+cells.append(md("""## 9. Análise final: respondendo as 4 perguntas
 
 Com a base preparada, conseguimos responder de forma visual e quantitativa.
 """))
@@ -785,11 +838,11 @@ O que a engenharia de variáveis nos permitiu fazer:
 1. **Sair de JSON aninhado** para 3 tabelas relacionais com tipos limpos.
 2. **Filtrar ruído** (perfis suspeitos, nulos, duplicatas) antes de qualquer análise.
 3. **Multiplicar uma única coluna por ~10 features** (timestamp → ano/mês/hora/período/é_fim_de_semana).
-4. **Usar LLM como extrator semântico** — tema, sentimento e entidades onde regex falharia.
+4. **Usar LLM como extrator semântico**: tema, sentimento e entidades onde regex falharia.
 5. **Normalizar escalas** (log, Yeo-Johnson, padronização) para que perfis com 10 mil e 600 milhões de seguidores convivam no mesmo gráfico.
-6. **Comparar tiers de forma justa** — micro engaja proporcionalmente mais, mas macro domina o volume absoluto.
+6. **Comparar tiers de forma justa**: micro engaja proporcionalmente mais, mas macro domina o volume absoluto.
 
-> A engenharia de variáveis **não é uma etapa anterior à análise — é a análise**.
+> A engenharia de variáveis **não é uma etapa anterior à análise. É a análise**.
 > O insight só apareceu porque a base foi preparada para ele aparecer.
 """))
 
