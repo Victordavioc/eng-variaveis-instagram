@@ -18,13 +18,22 @@ RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
 
 
 class HikerClient:
-    def __init__(self, api_key: str | None = None, raw_dir: Path | None = None, sleep_s: float = 0.3):
+    def __init__(self, api_key: str | None = None, raw_dir: Path | None = None, sleep_s: float = 0.3,
+                 force_refresh: bool | set[str] = False):
+        """
+        force_refresh:
+          False        usa cache normalmente (default)
+          True         ignora cache de todos os buckets e re-baixa tudo
+          {"profile"}  ignora cache apenas dos buckets listados
+                       (valores válidos: "profile", "medias", "comments")
+        """
         self.api_key = api_key or os.getenv("HIKER_API_KEY")
         if not self.api_key:
             raise RuntimeError("HIKER_API_KEY não definida. Crie um .env a partir de .env.example.")
         self.raw_dir = Path(raw_dir) if raw_dir else RAW_DIR
         self.raw_dir.mkdir(parents=True, exist_ok=True)
         self.sleep_s = sleep_s  # pausa pequena entre chamadas para ser respeitoso
+        self.force_refresh = force_refresh
 
     # ---------- baixo nível ----------
     def _cache_path(self, bucket: str, key: str) -> Path:
@@ -33,10 +42,17 @@ class HikerClient:
         d.mkdir(parents=True, exist_ok=True)
         return d / f"{safe}.json"
 
+    def _cache_invalidated(self, bucket: str) -> bool:
+        if self.force_refresh is True:
+            return True
+        if isinstance(self.force_refresh, (set, frozenset, list, tuple)):
+            return bucket in self.force_refresh
+        return False
+
     def _get(self, path: str, params: dict[str, Any], bucket: str, key: str,
              max_retries: int = 4) -> Any:
         cache = self._cache_path(bucket, key)
-        if cache.exists():
+        if cache.exists() and not self._cache_invalidated(bucket):
             with open(cache, "r", encoding="utf-8") as f:
                 return json.load(f)
 
