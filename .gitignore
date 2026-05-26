@@ -1,4 +1,4 @@
-# Secrets — NUNCA commitar (contém chaves Hiker e Gemini)
+# Secrets: NUNCA commitar (contém chaves Hiker e Gemini)
 .env
 .env.local
 *.key
@@ -23,3 +23,6 @@ venv/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Artefatos de build (gerados por scripts/build_colab_bundle.py)
+colab-bundle.zip

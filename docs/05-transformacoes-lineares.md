@@ -1,4 +1,4 @@
-# 05 — Transformações lineares
+# 05: Transformações lineares
 
 ## Slide 1: O que é
 - Aplicar **transformação afim** `x' = a·x + b` para reescalar variáveis.
@@ -16,10 +16,10 @@
 ## Slide 3: O que fizemos no projeto
 - Aplicamos `StandardScaler` em `like_count`, `comment_count`, `caption_length`, `engagement_rate`, `num_hashtags`.
 - Cada feature virou também `<feature>_std` e `<feature>_mm` (Min-Max), preservando o original.
-- **Resultado visual:** o histograma de `like_count` pré-padronização tem cauda gigante (Cristiano domina). Pós-padronização, vira z-score — mas a *forma* da distribuição continua a mesma. Padronização linear não resolve cauda longa, só centra.
+- **Resultado visual:** o histograma de `like_count` pré-padronização tem cauda gigante (Cristiano domina). Pós-padronização, vira z-score, mas a *forma* da distribuição continua a mesma. Padronização linear não resolve cauda longa, só centra.
 
 ## Notas do apresentador
-> "Padronização linear é como mudar de Celsius para Fahrenheit — os valores mudam,
+> "Padronização linear é como mudar de Celsius para Fahrenheit: os valores mudam,
 > mas o que era extremo continua extremo. Para domar a cauda longa do Instagram,
 > a gente precisa de transformação não-linear, que é o próximo capítulo."
 

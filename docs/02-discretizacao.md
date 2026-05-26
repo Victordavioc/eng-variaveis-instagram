@@ -1,17 +1,17 @@
-# 02 — Discretização
+# 02: Discretização
 
 ## Slide 1: O que é
 - Transformar variável **contínua** em **categórica ordenada**.
 - Permite agrupar, comparar e visualizar sem dominância dos extremos.
 - Duas abordagens:
-  - `pd.cut` — **bins fixos** (decisão do domínio: "<100k é micro").
-  - `pd.qcut` — **bins por quantis** (decisão dos dados: "os 25% mais baixos").
+  - `pd.cut`: **bins fixos** (decisão do domínio: "<100k é micro").
+  - `pd.qcut`: **bins por quantis** (decisão dos dados: "os 25% mais baixos").
 
 ## Slide 2: Quando usar / cuidados
 - Use `cut` quando há **convenção de domínio** (faixas etárias, tiers de influenciador).
 - Use `qcut` quando quer **distribuição balanceada** entre as categorias.
 - **Cuidado com perda de informação:** discretizar demais apaga nuances.
-- Sempre escolher *labels significativos* — "baixo/médio/alto" diz mais que "1/2/3".
+- Sempre escolher *labels significativos*. "baixo/médio/alto" diz mais que "1/2/3".
 
 ## Slide 3: O que fizemos no projeto
 - `follower_count` → `tier` ∈ {micro <100k, mid 100k-1M, macro >1M} via `pd.cut`.
@@ -24,7 +24,7 @@
 > "Se a gente comparasse 'média de likes' direto entre Cristiano e o lucasmontano,
 > Cristiano ganha de longe. Mas quando a gente cria a feature `tier` e compara
 > *dentro* do tier, descobre que o micro tem `engagement_rate` proporcionalmente
-> *maior* — a audiência menor é mais engajada. Esse insight só existe porque
+> *maior*: a audiência menor é mais engajada. Esse insight só existe porque
 > discretizamos."
 
-**Transição:** depois de discretizar, podemos *cruzar* categorias — Seção 6.
+**Transição:** depois de discretizar, podemos *cruzar* categorias na Seção 6.

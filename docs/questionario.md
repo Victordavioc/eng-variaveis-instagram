@@ -1,4 +1,4 @@
-# Questionário — Engenharia de Variáveis com Dados do Instagram
+# Questionário: Engenharia de Variáveis com Dados do Instagram
 
 > **Instruções:** 10 questões de múltipla escolha. Você terá 15 minutos.
 > Marque apenas uma alternativa por questão. Boa prova!
@@ -11,8 +11,8 @@ Durante a coleta de dados de perfis do Instagram, encontramos uma conta com nome
 parecido com a oficial do Gordon Ramsay, mas com apenas 87 seguidores e 197 posts.
 Qual a abordagem mais correta?
 
-a) Manter o perfil — todos os dados coletados devem ser preservados para evitar viés.
-b) Remover o perfil — provavelmente é uma conta secundária ou homônima que distorceria comparações entre tiers.
+a) Manter o perfil, todos os dados coletados devem ser preservados para evitar viés.
+b) Remover o perfil, provavelmente é uma conta secundária ou homônima que distorceria comparações entre tiers.
 c) Combinar com a conta oficial somando os seguidores.
 d) Imputar o valor de seguidores pela média dos macro influenciadores.
 
@@ -31,7 +31,7 @@ c) Manter, mas aplicar `log1p` em análises e visualizações.
 d) Excluir o perfil inteiro, pois um perfil tão influente não pode ser comparado.
 
 **Resposta correta:** c)
-**Explicação:** outliers de engajamento são exatamente o objeto de estudo — são os posts virais. O problema é de *escala*, não de *integridade*. Manter e aplicar transformação log resolve a visualização sem perder informação.
+**Explicação:** outliers de engajamento são exatamente o objeto de estudo, são os posts virais. O problema é de *escala*, não de *integridade*. Manter e aplicar transformação log resolve a visualização sem perder informação.
 
 ---
 
@@ -45,7 +45,7 @@ c) `pd.cut` é mais rápido em DataFrames grandes.
 d) `pd.qcut` exige normalidade dos dados.
 
 **Resposta correta:** b)
-**Explicação:** `pd.cut` usa bins explícitos, ideal quando há critério de domínio (micro/mid/macro é convenção de mercado). `pd.qcut` divide por quantis dos dados — usaríamos se quiséssemos 4 grupos balanceados.
+**Explicação:** `pd.cut` usa bins explícitos, ideal quando há critério de domínio (micro/mid/macro é convenção de mercado). `pd.qcut` divide por quantis dos dados; usaríamos se quiséssemos 4 grupos balanceados.
 
 ---
 
@@ -59,7 +59,7 @@ c) Cada faixa tem a mesma **média de engajamento**.
 d) Posts virais terão `engagement_rate` acima de 5%.
 
 **Resposta correta:** a)
-**Explicação:** `qcut` divide por quantis — o resultado tem ~25% dos registros em cada faixa. Os intervalos de likes serão muito diferentes entre as faixas porque a distribuição é desbalanceada.
+**Explicação:** `qcut` divide por quantis; o resultado tem ~25% dos registros em cada faixa. Os intervalos de likes serão muito diferentes entre as faixas porque a distribuição é desbalanceada.
 
 ---
 
@@ -81,7 +81,7 @@ d) Converte automaticamente para o fuso horário do usuário.
 
 Criamos `engagement_rate = (likes + comments) / followers`. Por que isso é melhor que usar `likes` direto para comparar perfis?
 
-a) Não é melhor — `likes` é a métrica oficial do Instagram.
+a) Não é melhor, `likes` é a métrica oficial do Instagram.
 b) Porque `engagement_rate` é uma **feature normalizada** que permite comparar perfis com bases de seguidores muito diferentes.
 c) Porque `comments` tem peso maior que `likes`.
 d) Porque elimina automaticamente posts virais.
@@ -124,7 +124,7 @@ d) `log1p` preserva o sinal de valores negativos.
 Usamos `PowerTransformer(method="yeo-johnson")` em `engagement_rate`. Por que Yeo-Johnson e não Box-Cox?
 
 a) Box-Cox é mais lento.
-b) Box-Cox exige `x > 0`. Yeo-Johnson aceita zeros e negativos — necessário porque `engagement_rate` pode ser 0.
+b) Box-Cox exige `x > 0`. Yeo-Johnson aceita zeros e negativos, necessário porque `engagement_rate` pode ser 0.
 c) Yeo-Johnson é determinística e Box-Cox é estocástica.
 d) Box-Cox foi descontinuada no scikit-learn.
 
@@ -137,8 +137,8 @@ d) Box-Cox foi descontinuada no scikit-learn.
 
 Usamos Gemini para classificar `theme` das captions e `sentiment` dos comentários. Por que isso é considerado **engenharia de variáveis**?
 
-a) Não é — o LLM é uma ferramenta de NLP, não de feature engineering.
-b) Porque transformamos **texto não-estruturado** em **colunas categóricas estruturadas** que alimentam análises subsequentes — exatamente o objetivo da engenharia de variáveis.
+a) Não é, o LLM é uma ferramenta de NLP, não de feature engineering.
+b) Porque transformamos **texto não-estruturado** em **colunas categóricas estruturadas** que alimentam análises subsequentes, exatamente o objetivo da engenharia de variáveis.
 c) Porque o Gemini foi treinado especificamente para feature engineering.
 d) Porque o LLM substitui completamente todas as outras técnicas.
 

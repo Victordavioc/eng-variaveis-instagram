@@ -23,7 +23,7 @@ a forma moderna de engenharia de features sobre texto não-estruturado.
 │   ├── raw/                   # JSONs brutos da Hiker (cacheados)
 │   └── processed/             # dataset final + cache do LLM
 ├── notebooks/
-│   └── apresentacao.ipynb     # entregável principal — 45 min de apresentação
+│   └── apresentacao.ipynb     # entregável principal (45 min de apresentação)
 ├── src/
 │   ├── hiker_client.py        # wrapper Hiker com cache em disco
 │   ├── gemini_client.py       # wrapper Gemini com cache em disco
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 copy .env.example .env
 # (edite .env preenchendo HIKER_API_KEY e GEMINI_API_KEY)
 
-# 3. colete os dados (idempotente — só baixa o que ainda não está em data/raw/)
+# 3. colete os dados (idempotente: só baixa o que ainda não está em data/raw/)
 python scripts/collect_data.py
 
 # 4. (opcional) regenere o notebook a partir do script fonte
@@ -57,7 +57,7 @@ jupyter notebook notebooks/apresentacao.ipynb
 ```
 
 > Com **cache quente** (todas as chamadas já feitas), o notebook executa em **< 2 minutos**.
-> Em cache frio, a primeira execução leva ~10–15 min (chamadas LLM + Hiker).
+> Em cache frio, a primeira execução leva ~10 a 15 min (chamadas LLM + Hiker).
 
 ## Reprodutibilidade
 
@@ -69,7 +69,7 @@ jupyter notebook notebooks/apresentacao.ipynb
 ## Segurança
 
 - `.env` está no `.gitignore` (a chave **nunca** vai pro repositório).
-- Todos os módulos lêem chaves via `os.getenv()` — nada hardcoded.
+- Todos os módulos lêem chaves via `os.getenv()`. Nada hardcoded.
 - Use `.env.example` como template para colaboradores.
 
 ## Stack

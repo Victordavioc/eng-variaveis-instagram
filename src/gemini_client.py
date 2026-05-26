@@ -99,7 +99,7 @@ class GeminiClient:
                 msg = str(e)
                 if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
                     if self.fail_fast_on_quota:
-                        # quota esgotada — caller deve usar fallback
+                        # quota esgotada, caller deve usar fallback
                         break
                     time.sleep(backoff)
                     backoff *= 2

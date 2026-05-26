@@ -1,4 +1,4 @@
-# 00 — Introdução: por que Instagram?
+# 00: Introdução, por que Instagram?
 
 ## Slide 1: O problema
 - Dados de redes sociais chegam como **JSON aninhado**, com campos compostos, texto livre e métricas em escalas enormes.
@@ -6,18 +6,18 @@
 - Esse é o domínio da **Engenharia de Variáveis**.
 
 ## Slide 2: Por que esse dataset é didático
-- **Escalas absurdas:** Cristiano (660M followers) ao lado de micro (10k) — força a usar log.
-- **Texto livre:** captions e comentários — força features semânticas e LLM.
+- **Escalas absurdas:** Cristiano (660M followers) ao lado de micro (10k), o que força a usar log.
+- **Texto livre:** captions e comentários, o que força features semânticas e LLM.
 - **Datas em timestamp:** força decomposição em ano/mês/hora/período.
-- **Categorias ricas:** tipo de mídia, verificação, business account — força discretização e cruzamento.
+- **Categorias ricas:** tipo de mídia, verificação, business account, o que força discretização e cruzamento.
 
 ## Slide 3: As 4 perguntas analíticas
 Cada técnica que vamos cobrir está a serviço de responder:
 
-1. **Saúde do perfil** — quem tem engajamento suspeito?
-2. **Caption analysis** — o que caracteriza captions de alto desempenho?
-3. **Comportamento da audiência** — o que os comentários revelam?
-4. **Comparação entre tiers** — micro × mid × macro.
+1. **Saúde do perfil:** quem tem engajamento suspeito?
+2. **Caption analysis:** o que caracteriza captions de alto desempenho?
+3. **Comportamento da audiência:** o que os comentários revelam?
+4. **Comparação entre tiers:** micro × mid × macro.
 
 ## Notas do apresentador
 > "A engenharia de variáveis não é uma etapa que vem antes da análise. É a análise.

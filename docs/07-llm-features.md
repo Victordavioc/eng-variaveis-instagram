@@ -1,4 +1,4 @@
-# 07 — LLM como engenheiro de variáveis
+# 07: LLM como engenheiro de variáveis
 
 ## Slide 1: O que é
 - Usar um **Large Language Model** (Gemini, GPT-4, Claude) como extrator de **features semânticas** sobre texto não-estruturado.
@@ -17,11 +17,11 @@
 
 ## Slide 3: O que fizemos no projeto
 - **3 tipos de features** extraídas com Gemini 2.5 Flash:
-  1. `theme` — classificação temática das captions em 8 categorias (LLM → ~14 batches em cache).
-  2. `entities` — lista de marcas/pessoas/locais por caption (LLM + fallback regex 50/50).
-  3. `sentiment` — classificação positivo/neutro/negativo dos comentários (LLM + fallback lexicon).
-- **Batches de 25 inputs por prompt** — reduz nº de chamadas em ~25× (e o custo).
-- **Cache em `data/processed/llm_cache.json`** — re-rodar o notebook custa **0 chamadas**.
+  1. `theme`: classificação temática das captions em 8 categorias (LLM → ~14 batches em cache).
+  2. `entities`: lista de marcas/pessoas/locais por caption (LLM + fallback regex 50/50).
+  3. `sentiment`: classificação positivo/neutro/negativo dos comentários (LLM + fallback lexicon).
+- **Batches de 25 inputs por prompt**: reduz nº de chamadas em ~25× (e o custo).
+- **Cache em `data/processed/llm_cache.json`**: re-rodar o notebook custa **0 chamadas**.
 - **Pipeline híbrido com degradação graciosa:** cada feature derivada do LLM tem uma
   coluna `*_source` ∈ {`llm`, `fallback`, `empty`} indicando como foi obtida. Se o LLM
   fica fora do ar (rate-limit, quota), o fallback determinístico assume e o pipeline
@@ -31,7 +31,7 @@
 ## Notas do apresentador
 > "Antes, se eu quisesse classificar uma caption como 'esporte' ou 'lifestyle',
 > teria que manter um dicionário de palavras-chave, lidar com português + inglês,
-> com emojis, com gírias. Era frágil. Hoje, um prompt de 5 linhas faz isso —
+> com emojis, com gírias. Era frágil. Hoje, um prompt de 5 linhas faz isso,
 > e funciona melhor. Mas atenção: continua sendo engenharia de variáveis. A
 > diferença é a ferramenta."
 

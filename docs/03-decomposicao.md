@@ -1,4 +1,4 @@
-# 03 — Decomposição
+# 03: Decomposição
 
 ## Slide 1: O que é
 - Quebrar um campo composto em **várias features primitivas**.
@@ -10,7 +10,7 @@
 
 ## Slide 2: Cuidados
 - Não decompor demais: features extremamente granulares (segundo do post) raramente agregam.
-- Manter o **campo original** caso precise revisitar — decomposição é aditiva.
+- Manter o **campo original** caso precise revisitar. Decomposição é aditiva.
 - Tipagem correta importa: `weekday` como string ordenada, não inteiro arbitrário.
 
 ## Slide 3: O que fizemos no projeto
@@ -23,7 +23,7 @@
 > "A Hiker me deu uma string `2026-05-15T19:22:45Z`. Sozinha, ela não responde
 > nenhuma pergunta. Mas quando eu decomponho em hora=19 e period_of_day='noite',
 > de repente eu posso responder: 'qual o período em que os virais mais aparecem?'
-> A informação estava lá o tempo todo — só estava enrolada."
+> A informação estava lá o tempo todo, só estava enrolada."
 
 **Pergunta provável:** "Por que não usaram o timestamp UNIX direto?"
 **Resposta:** ele é uma feature *aditiva* (continua no DataFrame), mas não é
