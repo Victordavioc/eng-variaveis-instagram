@@ -27,6 +27,12 @@ USERNAMES = [
     # macro (>1M)
     "cristiano", "leomessi", "kyliejenner", "natgeo", "nasa", "nike",
     "chrishemsworth", "bts.bighitofficial", "garyvee", "mkbhd",
+    # macro internacional adicional
+    "taylorswift", "selenagomez", "therock",
+    # macro BR (esporte + lifestyle)
+    "neymarjr", "vinijr", "gkay",
+    # instituições de ensino (audiência educacional)
+    "mit", "harvard", "stanford",
     # mid (100k-1M, mix de nichos BR tech/criadores)
     "filipedeschamps", "rocketseat",
     # micro (10k-100k)
